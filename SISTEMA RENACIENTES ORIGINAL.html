@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SISTEMA RS | Renacientes de los Sambos</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#0b1220; --panel:#111a2e; --panel2:#17233b; --card:#ffffff;
+  --text:#eaf0ff; --muted:#93a4c7; --blue:#2563eb; --blue2:#3b82f6;
+  --gold:#d9a441; --green:#16a34a; --red:#dc2626; --orange:#f59e0b;
+  --line:#263653; --light:#f4f7fb; --darktext:#172033;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:#eef2f7;color:var(--darktext)}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.app{display:flex;min-height:100vh}
+.sidebar{width:250px;background:linear-gradient(180deg,#09101e,#111a2e);color:#fff;position:fixed;left:0;top:0;bottom:0;padding:18px 14px;z-index:20;box-shadow:8px 0 30px #0002}
+.brand{display:flex;gap:12px;align-items:center;padding:10px 8px 22px;border-bottom:1px solid #ffffff16}
+.logo{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,#d9a441,#f4d47b);display:grid;place-items:center;color:#111;font-weight:900;font-size:21px}
+.brand h1{font-size:16px;margin:0}.brand small{color:#9eafd0}
+.nav{margin-top:18px;display:grid;gap:7px}
+.nav button{border:0;background:transparent;color:#c7d2e9;text-align:left;padding:12px 13px;border-radius:11px;display:flex;gap:11px;align-items:center;font-weight:600}
+.nav button:hover,.nav button.active{background:#2563eb;color:#fff}
+.sidebar-bottom{position:absolute;bottom:18px;left:14px;right:14px;font-size:11px;color:#7182a4;padding:10px;border-top:1px solid #ffffff12}
+.main{margin-left:250px;width:calc(100% - 250px);padding:24px;min-height:100vh}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
+.title h2{margin:0;font-size:28px}.title p{margin:5px 0 0;color:#66748d}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:0;border-radius:10px;padding:10px 14px;font-weight:700;transition:.15s}
+.btn:hover{transform:translateY(-1px)}
+.primary{background:var(--blue);color:#fff}.secondary{background:#e5ebf5;color:#24324a}
+.success{background:var(--green);color:#fff}.danger{background:var(--red);color:#fff}.gold{background:var(--gold);color:#111}
+.ghost{background:transparent;border:1px solid #d6deeb;color:#33415a}
+.page{display:none}.page.active{display:block}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px}
+.stat{background:#fff;border:1px solid #e3e9f2;border-radius:16px;padding:18px;box-shadow:0 5px 20px #14213d0a}
+.stat .label{color:#71809a;font-size:13px;font-weight:700}.stat .value{font-size:28px;font-weight:850;margin-top:8px}.stat .sub{font-size:12px;color:#8a97ab;margin-top:5px}
+.grid2{display:grid;grid-template-columns:1.2fr .8fr;gap:18px;margin-top:18px}
+.panel{background:#fff;border:1px solid #e1e7f0;border-radius:16px;box-shadow:0 5px 20px #14213d0a;overflow:hidden}
+.panel-head{padding:16px 18px;border-bottom:1px solid #e8edf4;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.panel-head h3{margin:0;font-size:16px}.panel-body{padding:18px}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.form-grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.field{display:flex;flex-direction:column;gap:6px}.field.full{grid-column:1/-1}
+.field label{font-size:12px;font-weight:800;color:#52627c}.field input,.field select,.field textarea{width:100%;padding:10px 11px;border:1px solid #d5deea;border-radius:9px;outline:none;background:#fff;color:#182338}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#4b82ee;box-shadow:0 0 0 3px #2563eb18}
+.field textarea{min-height:80px;resize:vertical}
+.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px}
+.search{flex:1;min-width:220px}
+.search input{width:100%;padding:11px 13px;border:1px solid #d6dfeb;border-radius:10px}
+.table-wrap{overflow:auto;border:1px solid #e1e7ef;border-radius:11px}
+table{width:100%;border-collapse:collapse;min-width:760px}
+th,td{padding:11px 12px;border-bottom:1px solid #edf1f6;text-align:left;font-size:13px;white-space:nowrap}
+th{background:#f7f9fc;color:#52617a;font-size:12px;cursor:pointer;position:sticky;top:0;z-index:1}
+tr:hover td{background:#fafcff}
+.badge{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:800}
+.badge.green{background:#dcfce7;color:#166534}.badge.red{background:#fee2e2;color:#991b1b}.badge.yellow{background:#fef3c7;color:#92400e}.badge.blue{background:#dbeafe;color:#1d4ed8}.badge.gray{background:#e5e7eb;color:#374151}
+.row-actions{display:flex;gap:5px}.mini{padding:6px 8px;border:0;border-radius:7px;font-size:11px;font-weight:800}
+.empty{padding:40px;text-align:center;color:#8a97ab}
+.kpi-list{display:grid;gap:10px}.kpi-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px dashed #dfe5ee}.kpi-row:last-child{border:0}
+.progress{height:8px;background:#edf1f7;border-radius:99px;overflow:hidden}.progress i{display:block;height:100%;background:#2563eb}
+.modal{position:fixed;inset:0;background:#0b122099;display:none;align-items:center;justify-content:center;padding:20px;z-index:100;backdrop-filter:blur(4px)}
+.modal.show{display:flex}.modal-card{width:min(850px,96vw);max-height:92vh;overflow:auto;background:#fff;border-radius:18px;box-shadow:0 30px 90px #0005}
+.modal-head{padding:17px 20px;border-bottom:1px solid #e5eaf1;display:flex;justify-content:space-between;align-items:center}.modal-head h3{margin:0}.close{border:0;background:#eef2f7;border-radius:9px;padding:7px 10px;font-size:18px}
+.modal-body{padding:20px}.modal-foot{padding:15px 20px;border-top:1px solid #e5eaf1;display:flex;justify-content:flex-end;gap:8px}
+.img-preview{max-width:100%;max-height:300px;border-radius:12px;border:1px solid #dbe2ed;margin-top:8px}
+.notice{padding:12px 14px;border-radius:10px;background:#eef6ff;border-left:4px solid #2563eb;color:#294a78;font-size:13px}
+.toast{position:fixed;right:22px;bottom:22px;z-index:300;background:#101827;color:#fff;padding:13px 16px;border-radius:11px;box-shadow:0 15px 40px #0004;display:none;max-width:360px}
+.toast.show{display:block;animation:in .2s}.toast.error{border-left:4px solid #ef4444}.toast.ok{border-left:4px solid #22c55e}
+@keyframes in{from{transform:translateY(12px);opacity:0}to{transform:none;opacity:1}}
+.hero{background:linear-gradient(135deg,#10254d,#1f4e9b);color:#fff;border-radius:18px;padding:25px;margin-bottom:18px;position:relative;overflow:hidden}
+.hero:after{content:"RS";position:absolute;right:25px;top:-25px;font-size:150px;font-weight:900;color:#ffffff0b}
+.hero h1{margin:0;font-size:30px}.hero p{color:#d7e4ff;max-width:680px}
+.section-note{font-size:12px;color:#77869e;margin-top:7px}
+.receipt{border:1px dashed #bcc8d9;padding:14px;border-radius:11px;background:#fbfcfe}
+.hidden{display:none!important}
+@media(max-width:1050px){.cards{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}.sidebar{width:215px}.main{margin-left:215px;width:calc(100% - 215px)}}
+@media(max-width:750px){.sidebar{position:relative;width:100%;height:auto;min-height:0}.sidebar-bottom{position:static}.app{display:block}.main{margin-left:0;width:100%;padding:15px}.nav{grid-template-columns:repeat(2,1fr)}.cards{grid-template-columns:1fr}.form-grid,.form-grid.three{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand"><div class="logo">RS</div><div><h1>RENACIENTES</h1><small>SISTEMA RS</small></div></div>
+  <div class="nav">
+    <button class="active" data-page="inicio">🏠 Inicio</button>
+    <button data-page="integrantes">👥 Integrantes</button>
+    <button data-page="pagos">💳 Pagos</button>
+    <button data-page="cajas">💰 Cajas</button>
+    <button data-page="conceptos">🏷️ Conceptos</button>
+    <button data-page="exportaciones">📊 Exportaciones</button>
+    <button data-page="backups">🛡️ Copias de seguridad</button>
+    <button data-page="config">⚙️ Configuración</button>
+  </div>
+  <div class="sidebar-bottom">Prototipo web funcional · Los datos se guardan en este navegador mediante localStorage.</div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="title"><h2 id="pageTitle">Inicio</h2><p id="pageSubtitle">Panel general de Renacientes de los Sambos</p></div>
+    <div class="actions"><button class="btn secondary" onclick="dailyExport()">📅 Excel de hoy</button><button class="btn primary" onclick="openPaymentModal()">＋ Registrar pago</button></div>
+  </div>
+
+  <section id="page-inicio" class="page active">
+    <div class="hero"><h1>Control central de la fraternidad</h1><p>Integrantes, pagos, conceptos, cajas y comprobantes en un solo lugar. Sin hojas perdidas en WhatsApp, porque la humanidad ya ha sufrido bastante.</p></div>
+    <div class="cards">
+      <div class="stat"><div class="label">INTEGRANTES</div><div class="value" id="dashMembers">0</div><div class="sub">Registrados</div></div>
+      <div class="stat"><div class="label">PAGOS</div><div class="value" id="dashPayments">0</div><div class="sub">Movimientos registrados</div></div>
+      <div class="stat"><div class="label">INGRESOS</div><div class="value" id="dashIncome">S/ 0.00</div><div class="sub">Total calculado desde pagos</div></div>
+      <div class="stat"><div class="label">CAJAS</div><div class="value" id="dashBoxes">0</div><div class="sub">Cajas activas</div></div>
+    </div>
+    <div class="grid2">
+      <div class="panel"><div class="panel-head"><h3>Ingresos por caja</h3></div><div class="panel-body" id="boxSummary"></div></div>
+      <div class="panel"><div class="panel-head"><h3>Últimos pagos</h3></div><div class="panel-body" id="recentPayments"></div></div>
+    </div>
+  </section>
+
+  <section id="page-integrantes" class="page">
+    <div class="panel">
+      <div class="panel-head"><div><h3>Gestión de integrantes</h3><div class="section-note">Registro completo, búsqueda, ordenamiento y historial individual.</div></div><button class="btn primary" onclick="openMemberModal()">＋ Nuevo integrante</button></div>
+      <div class="panel-body">
+        <div class="toolbar"><div class="search"><input id="memberSearch" placeholder="🔎 Buscar por nombre, apellido, DNI o teléfono..." oninput="renderMembers()"></div><button class="btn secondary" onclick="exportMembers()">Excel</button></div>
+        <div class="table-wrap"><table><thead><tr>
+          <th onclick="sortTable('members','id')">ID ↕</th><th onclick="sortTable('members','names')">Nombres ↕</th><th onclick="sortTable('members','surnames')">Apellidos ↕</th><th onclick="sortTable('members','dni')">DNI ↕</th><th onclick="sortTable('members','sex')">Sexo ↕</th><th onclick="sortTable('members','age')">Edad ↕</th><th onclick="sortTable('members','registered')">Registro ↕</th><th>Acciones</th>
+        </tr></thead><tbody id="membersBody"></tbody></table></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="page-pagos" class="page">
+    <div class="panel">
+      <div class="panel-head"><div><h3>Pagos registrados</h3><div class="section-note">Los totales se calculan directamente de los movimientos guardados.</div></div><button class="btn primary" onclick="openPaymentModal()">＋ Registrar pago</button></div>
+      <div class="panel-body">
+        <div class="toolbar">
+          <div class="search"><input id="paymentSearch" placeholder="🔎 Buscar integrante, concepto, caja..." oninput="renderPayments()"></div>
+          <select id="paymentStatusFilter" onchange="renderPayments()"><option value="">Todos los estados</option><option>Pagado</option><option>Pendiente</option><option>Anulado</option></select>
+          <input id="paymentDateFilter" type="date" onchange="renderPayments()" title="Filtrar por fecha">
+          <button class="btn secondary" onclick="exportPayments()">Excel</button>
+        </div>
+        <div class="table-wrap"><table><thead><tr>
+          <th>ID</th><th>Fecha</th><th>Integrante</th><th>Concepto</th><th>Precio</th><th>Abono</th><th>Acumulado</th><th>Saldo</th><th>Caja</th><th>Método</th><th>Estado</th><th>Comprobante</th><th>Acciones</th>
+        </tr></thead><tbody id="paymentsBody"></tbody></table></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="page-cajas" class="page">
+    <div class="cards" style="margin-bottom:18px" id="boxCards"></div>
+    <div class="panel"><div class="panel-head"><div><h3>Administración de cajas</h3><div class="section-note">Cada caja puede restringirse por sexo.</div></div><button class="btn primary" onclick="openBoxModal()">＋ Nueva caja</button></div>
+      <div class="panel-body"><div class="toolbar"><div class="search"><input id="boxSearch" placeholder="🔎 Buscar caja..." oninput="renderBoxes()"></div></div>
+      <div class="table-wrap"><table><thead><tr><th>ID</th><th>Nombre</th><th>Sexo</th><th>Ingresos</th><th>Movimientos</th><th>Acciones</th></tr></thead><tbody id="boxesBody"></tbody></table></div></div>
+    </div>
+  </section>
+
+  <section id="page-conceptos" class="page">
+    <div class="panel"><div class="panel-head"><div><h3>Conceptos de pago</h3><div class="section-note">El filtro de sexo se aplica automáticamente al registrar un pago.</div></div><button class="btn primary" onclick="openConceptModal()">＋ Nuevo concepto</button></div>
+      <div class="panel-body"><div class="toolbar"><div class="search"><input id="conceptSearch" placeholder="🔎 Buscar concepto..." oninput="renderConcepts()"></div></div>
+      <div class="table-wrap"><table><thead><tr><th>ID</th><th>Concepto</th><th>Precio</th><th>Sexo permitido</th><th>Movimientos</th><th>Acciones</th></tr></thead><tbody id="conceptsBody"></tbody></table></div></div>
+    </div>
+  </section>
+
+  <section id="page-exportaciones" class="page">
+    <div class="panel"><div class="panel-head"><h3>Exportaciones</h3></div><div class="panel-body">
+      <div class="cards">
+        <div class="stat"><div class="label">INTEGRANTES</div><div class="value">Excel</div><button class="btn primary" onclick="exportMembers()">Exportar</button></div>
+        <div class="stat"><div class="label">PAGOS</div><div class="value">Excel</div><button class="btn primary" onclick="exportPayments()">Exportar</button></div>
+        <div class="stat"><div class="label">RESUMEN</div><div class="value">Excel</div><button class="btn gold" onclick="exportSummary()">Exportar</button></div>
+        <div class="stat"><div class="label">HOY</div><div class="value" id="todayExportLabel">Excel</div><button class="btn success" onclick="dailyExport()">Generar</button></div>
+      </div>
+      <div class="panel" style="margin-top:18px"><div class="panel-head"><h3>Exportación por rango de fechas</h3></div><div class="panel-body">
+        <div class="form-grid three"><div class="field"><label>Desde</label><input type="date" id="exportFrom"></div><div class="field"><label>Hasta</label><input type="date" id="exportTo"></div><div class="field" style="justify-content:end"><button class="btn primary" onclick="exportRange()">Exportar rango</button></div></div>
+      </div></div>
+      <div class="panel" style="margin-top:18px"><div class="panel-head"><div><h3>📋 Control de pago por concepto</h3><div class="section-note">Compara a todos los integrantes con el precio del concepto, incluyendo quienes todavía no tienen ningún pago registrado.</div></div></div><div class="panel-body">
+        <div class="form-grid three">
+          <div class="field"><label>Concepto a controlar</label><select id="controlConcept" onchange="renderConceptControl()"></select></div>
+          <div class="field"><label>Mostrar</label><select id="controlStatus" onchange="renderConceptControl()">
+            <option value="">Todos</option><option value="COMPLETADO">🟢 Completados</option><option value="ABONO">🟡 Con abono</option><option value="NO_PAGO">🔴 No pagaron</option>
+          </select></div>
+          <div class="field" style="justify-content:end"><button class="btn primary" onclick="exportConceptControl()">📥 Exportar control</button></div>
+        </div>
+        <div class="cards" id="conceptControlStats" style="margin-top:18px"></div>
+        <div class="table-wrap" style="margin-top:18px"><table><thead><tr>
+          <th>ID</th><th>Integrante</th><th>DNI</th><th>Sexo</th><th>Precio</th><th>Pagado</th><th>Saldo</th><th>Avance</th><th>Estado</th>
+        </tr></thead><tbody id="conceptControlBody"></tbody></table></div>
+      </div></div>
+      <div class="notice" style="margin-top:18px">En este prototipo, la exportación usa SheetJS desde CDN para generar archivos .xlsx directamente en el navegador. La versión Python usará openpyxl, tal como pide la especificación.</div>
+    </div></div>
+  </section>
+
+  <section id="page-backups" class="page">
+    <div class="panel"><div class="panel-head"><h3>Copias de seguridad</h3></div><div class="panel-body">
+      <div class="notice">El backup web descarga un archivo JSON con integrantes, pagos, conceptos, cajas y configuración. En la versión de escritorio, el backup incluirá SQLite, comprobantes y configuración.</div>
+      <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap"><button class="btn primary" onclick="createBackup()">🛡️ Crear copia de seguridad</button><button class="btn secondary" onclick="document.getElementById('restoreFile').click()">♻️ Restaurar backup</button><input class="hidden" id="restoreFile" type="file" accept=".json" onchange="restoreBackup(event)"></div>
+    </div></div>
+  </section>
+
+  <section id="page-config" class="page">
+    <div class="panel"><div class="panel-head"><h3>Configuración</h3></div><div class="panel-body">
+      <div class="form-grid">
+        <div class="field"><label>Nombre del sistema</label><input id="cfgName" value="SISTEMA RS"></div>
+        <div class="field"><label>Fraternidad</label><input id="cfgFraternity" value="Renacientes de los Sambos"></div>
+        <div class="field"><label>Formato de moneda</label><select id="cfgCurrency"><option>S/</option><option>$</option><option>€</option></select></div>
+        <div class="field"><label>Tema</label><select id="cfgTheme"><option value="light">Claro</option><option value="dark">Oscuro</option></select></div>
+      </div>
+      <div style="margin-top:18px"><button class="btn primary" onclick="saveConfig()">Guardar configuración</button> <button class="btn danger" onclick="resetData()">Restablecer datos de demo</button></div><div class="notice" style="margin-top:14px"><b>Persistencia:</b> IndexedDB, limitado únicamente por el almacenamiento disponible del navegador. <button class="btn secondary" style="margin-left:8px" onclick="runDiagnostics()">🧪 Ejecutar diagnóstico</button></div>
+    </div></div>
+  </section>
+</main>
+</div>
+
+<div class="modal" id="memberModal"><div class="modal-card"><div class="modal-head"><h3 id="memberModalTitle">Nuevo integrante</h3><button class="close" onclick="closeModal('memberModal')">×</button></div><form id="memberForm" onsubmit="saveMember(event)"><div class="modal-body">
+  <input type="hidden" id="memberId">
+  <div class="form-grid"><div class="field"><label>Nombres *</label><input id="mNames" required></div><div class="field"><label>Apellidos *</label><input id="mSurnames" required></div>
+  <div class="field"><label>DNI * (8 dígitos)</label><input id="mDni" maxlength="8" inputmode="numeric" required></div><div class="field"><label>Teléfono</label><input id="mPhone" maxlength="16" placeholder="+51 000 000 000"></div>
+  <div class="field"><label>Sexo *</label><select id="mSex" required><option value="">Seleccionar</option><option value="F">F</option><option value="M">M</option></select></div><div class="field"><label>Fecha de nacimiento *</label><input id="mDob" placeholder="DD/MM/YYYY" maxlength="10" required></div>
+  <div class="field"><label>Edad</label><input id="mAge" readonly></div><div class="field"><label>Fecha de registro</label><input id="mRegistered" type="date" readonly></div>
+  <div class="field"><label>Tutor / Apoderado</label><input id="mGuardian"></div><div class="field"><label>Teléfono del tutor</label><input id="mGuardianPhone" maxlength="16" placeholder="+51 000 000 000"></div></div>
+  <div class="notice" style="margin-top:14px">Si la edad es menor de 18 años, tutor y teléfono se habilitan automáticamente.</div>
+</div><div class="modal-foot"><button type="button" class="btn secondary" onclick="closeModal('memberModal')">Cancelar</button><button class="btn primary">Guardar integrante</button></div></form></div></div>
+
+<div class="modal" id="paymentModal"><div class="modal-card"><div class="modal-head"><h3 id="paymentModalTitle">Registrar pago</h3><button class="close" onclick="closeModal('paymentModal')">×</button></div><form id="paymentForm" onsubmit="savePayment(event)"><div class="modal-body">
+  <input type="hidden" id="paymentId">
+  <div class="form-grid"><div class="field"><label>Integrante *</label><select id="pMember" required onchange="refreshPaymentOptions()"></select></div><div class="field"><label>Fecha *</label><input id="pDate" type="date" required></div>
+  <div class="field"><label>Concepto *</label><select id="pConcept" required></select></div><div class="field"><label>Monto *</label><input id="pAmount" type="number" min="0.01" step="0.01" required></div>
+  <div class="field"><label>Caja *</label><select id="pBox" required></select></div><div class="field"><label>Método de pago *</label><select id="pMethod" required><option value="">Seleccionar</option><option>Efectivo</option><option>Yape</option><option>Plin</option><option>Transferencia</option><option>Depósito</option><option>Otro</option></select></div>
+  <div class="field"><label>Estado *</label><select id="pStatus" required><option>Pagado</option><option>Pendiente</option><option>Anulado</option></select></div>
+<div class="field"><label>Estado del concepto</label><input id="pBalanceInfo" readonly placeholder="Selecciona integrante y concepto"></div>
+  <div class="field"><label>Comprobante</label><input id="pReceipt" type="file" accept="image/*"></div>
+  <div class="field full"><label>Imagen pegada desde portapapeles</label><div id="pasteZone" class="receipt" tabindex="0">Haz clic aquí y pega con <b>Ctrl + V</b> una captura de WhatsApp u otra imagen.</div><img id="receiptPreview" class="img-preview hidden"></div>
+  <div class="field full"><label>Observaciones</label><textarea id="pNotes" placeholder="Observaciones del pago..."></textarea></div></div>
+</div><div class="modal-foot"><button type="button" class="btn secondary" onclick="closeModal('paymentModal')">Cancelar</button><button class="btn primary">Guardar pago</button></div></form></div></div>
+
+<div class="modal" id="boxModal"><div class="modal-card"><div class="modal-head"><h3 id="boxModalTitle">Nueva caja</h3><button class="close" onclick="closeModal('boxModal')">×</button></div><form onsubmit="saveBox(event)"><div class="modal-body"><input type="hidden" id="boxId"><div class="form-grid"><div class="field"><label>Nombre *</label><input id="boxName" required></div><div class="field"><label>Sexo permitido</label><select id="boxSex"><option>Todos</option><option>F</option><option>M</option></select></div></div></div><div class="modal-foot"><button type="button" class="btn secondary" onclick="closeModal('boxModal')">Cancelar</button><button class="btn primary">Guardar caja</button></div></form></div></div>
+
+<div class="modal" id="conceptModal"><div class="modal-card"><div class="modal-head"><h3 id="conceptModalTitle">Nuevo concepto</h3><button class="close" onclick="closeModal('conceptModal')">×</button></div><form onsubmit="saveConcept(event)"><div class="modal-body"><input type="hidden" id="conceptId"><div class="form-grid"><div class="field"><label>Nombre *</label><input id="conceptName" required></div>
+<div class="field"><label>Precio total (S/) *</label><input id="conceptPrice" type="number" min="0" step="0.01" required placeholder="Ej. 70.00"></div>
+<div class="field"><label>Sexo permitido</label><select id="conceptSex"><option>Todos</option><option>F</option><option>M</option></select></div></div></div><div class="modal-foot"><button type="button" class="btn secondary" onclick="closeModal('conceptModal')">Cancelar</button><button class="btn primary">Guardar concepto</button></div></form></div></div>
+
+<div class="modal" id="historyModal"><div class="modal-card"><div class="modal-head"><h3 id="historyTitle">Historial de pagos</h3><button class="close" onclick="closeModal('historyModal')">×</button></div><div class="modal-body"><div class="toolbar"><button class="btn secondary" onclick="exportMemberHistory(currentHistoryMember)">Exportar Excel</button></div><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Concepto</th><th>Precio</th><th>Abono</th><th>Acumulado</th><th>Saldo</th><th>Caja</th><th>Método</th><th>Estado</th><th>Comprobante</th></tr></thead><tbody id="historyBody"></tbody></table></div></div></div></div>
+<div class="modal" id="imageModal"><div class="modal-card" style="max-width:700px"><div class="modal-head"><h3>Comprobante</h3><button class="close" onclick="closeModal('imageModal')">×</button></div><div class="modal-body" style="text-align:center"><img id="fullImage" style="max-width:100%;max-height:70vh;border-radius:12px"></div></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const KEY='SISTEMA_RS_WEB_V1';
+let state={members:[],payments:[],boxes:[],concepts:[],config:{name:'SISTEMA RS',fraternity:'Renacientes de los Sambos',currency:'S/',theme:'light'}};
+let sortState={members:{key:'id',dir:1}}; let currentHistoryMember=null; let clipboardImage=null;
+
+function uid(arr){let max=0;for(const x of arr){const n=Number(x.id)||0;if(n>max)max=n}return max+1}
+
+/* Persistencia robusta: IndexedDB es la base principal. localStorage queda solo como migración/compatibilidad. */
+const DB_NAME='SISTEMA_RS_DB_V2',DB_STORE='app',DB_KEY='state';
+let dbPromise=null,storageMode='IndexedDB';
+function openDB(){
+ if(!('indexedDB' in window))return Promise.reject(new Error('IndexedDB no está disponible'));
+ if(dbPromise)return dbPromise;
+ dbPromise=new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(DB_STORE))req.result.createObjectStore(DB_STORE)};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error||new Error('No se pudo abrir IndexedDB'))});
+ return dbPromise;
+}
+async function dbGet(){const db=await openDB();return new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readonly'),r=tx.objectStore(DB_STORE).get(DB_KEY);r.onsuccess=()=>resolve(r.result||null);r.onerror=()=>reject(r.error)})}
+async function dbPut(value){const db=await openDB();return new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).put(value,DB_KEY);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error||new Error('No se pudo guardar'))})}
+async function dbClear(){if(!('indexedDB' in window))return;const db=await openDB();return new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).clear();tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)})}
+function safeLocalGet(){try{const raw=localStorage.getItem(KEY);return raw?JSON.parse(raw):null}catch(e){return null}}
+function normalizeState(x){
+ const base={members:[],payments:[],boxes:[],concepts:[],config:{name:'SISTEMA RS',fraternity:'Renacientes de los Sambos',currency:'S/',theme:'light'}};
+ if(!x||typeof x!=='object')return base;
+ const out={...base,...x,config:{...base.config,...(x.config&&typeof x.config==='object'?x.config:{})}};
+ out.members=Array.isArray(out.members)?out.members:[];out.payments=Array.isArray(out.payments)?out.payments:[];out.boxes=Array.isArray(out.boxes)?out.boxes:[];out.concepts=Array.isArray(out.concepts)?out.concepts:[];
+ out.concepts=out.concepts.map(c=>({...c,id:Number(c.id)||0,price:Number(c.price)||0,sex:['Todos','F','M'].includes(c.sex)?c.sex:'Todos'}));
+ out.boxes=out.boxes.map(b=>({...b,id:Number(b.id)||0,sex:['Todos','F','M'].includes(b.sex)?b.sex:'Todos'}));
+ out.members=out.members.map(m=>({...m,id:Number(m.id)||0,dni:String(m.dni||''),age:Number(m.age)||0}));
+ out.payments=out.payments.map(p=>({...p,id:Number(p.id)||0,memberId:Number(p.memberId)||0,conceptId:Number(p.conceptId)||0,boxId:Number(p.boxId)||0,amount:Number(p.amount)||0,accumulated:Number(p.accumulated)||0,status:p.status||'Pagado'}));
+ return out;
+}
+function recalcAccumulated(){
+ const groups=new Map();
+ for(const p of state.payments){if(p.status!=='Pagado')p.accumulated=0;else{const k=`${p.memberId}|${p.conceptId}`;if(!groups.has(k))groups.set(k,[]);groups.get(k).push(p)}}
+ for(const arr of groups.values()){arr.sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))||Number(a.id)-Number(b.id));let total=0;for(const p of arr){total+=Number(p.amount)||0;p.accumulated=total}}
+}
+function renderAndPersist(){
+ renderAll();let payload;try{payload=JSON.stringify(state)}catch(e){toast('No se pudo preparar el guardado.',false);return}
+ dbPut(payload).then(()=>{storageMode='IndexedDB'}).catch(()=>{try{localStorage.setItem(KEY,payload);storageMode='localStorage'}catch(err){toast('No hay espacio suficiente para guardar los datos. Crea un backup y libera almacenamiento.',false)}});
+}
+function save(){recalcAccumulated();renderAndPersist()}
+async function load(){
+ let raw=null;try{raw=await dbGet()}catch(e){}
+ if(!raw){raw=safeLocalGet();if(raw){try{await dbPut(JSON.stringify(raw));storageMode='IndexedDB'}catch(e){storageMode='localStorage'}}}
+ if(raw){try{state=normalizeState(typeof raw==='string'?JSON.parse(raw):raw)}catch(e){state=normalizeState(null)}}
+ if(!state.boxes.length&&!state.concepts.length&&!state.members.length&&!state.payments.length){seed();recalcAccumulated();renderAndPersist()}else{recalcAccumulated();renderAll()}
+}
+function seed(){
+ state.boxes=[{id:1,name:'Caja chica',sex:'Todos'}];
+ state.concepts=[{id:1,name:'Cuota',price:30,sex:'Todos'},{id:2,name:'Polo',price:30,sex:'Todos'},{id:3,name:'Pollera',price:70,sex:'F'},{id:4,name:'Actividad',price:0,sex:'Todos'},{id:5,name:'Evento',price:0,sex:'Todos'}];
+ state.members=[
+  {id:1,names:'María',surnames:'Quispe',dni:'74125896',phone:'+51 927 165 730',sex:'F',dob:'15/05/2004',age:22,guardian:'',guardianPhone:'',registered:today()},
+  {id:2,names:'Carlos',surnames:'Huamán',dni:'70214589',phone:'+51 999 222 111',sex:'M',dob:'20/09/2001',age:25,guardian:'',guardianPhone:'',registered:today()}
+ ];
+ state.payments=[{id:1,memberId:1,date:today(),conceptId:1,amount:30,boxId:1,method:'Yape',status:'Pagado',receipt:'',notes:'Cuota de ensayo'}];
+}
+function today(){const d=new Date();const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`}
+function fmtDate(x){if(!x)return ''; if(/^\d{4}-\d{2}-\d{2}$/.test(x)){let [a,b,c]=x.split('-');return `${c}/${b}/${a}`} return x}
+function money(n){return `${state.config.currency} ${Number(n||0).toFixed(2)}`}
+function member(id){return state.members.find(x=>Number(x.id)===Number(id))}
+function box(id){return state.boxes.find(x=>Number(x.id)===Number(id))}
+function concept(id){return state.concepts.find(x=>Number(x.id)===Number(id))}
+function toast(msg,ok=true){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+(ok?'ok':'error');clearTimeout(window._toast);window._toast=setTimeout(()=>t.className='toast',2800)}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function openModal(id){document.getElementById(id).classList.add('show')}
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+function isValidDMY(d){let m=/^(\d{2})\/(\d{2})\/(\d{4})$/.exec(d);if(!m)return false;let day=+m[1],mon=+m[2],year=+m[3];if(mon<1||mon>12||day<1)return false;let dt=new Date(year,mon-1,day);return dt.getFullYear()===year&&dt.getMonth()===mon-1&&dt.getDate()===day&&year>=1900&&year<=new Date().getFullYear()}
+function isValidISODate(d){if(!/^\d{4}-\d{2}-\d{2}$/.test(d))return false;let [y,m,day]=d.split('-').map(Number),dt=new Date(y,m-1,day);return dt.getFullYear()===y&&dt.getMonth()===m-1&&dt.getDate()===day}
+function ageFrom(d){if(!isValidDMY(d))return '';let m=/^(\d{2})\/(\d{2})\/(\d{4})$/.exec(d),b=new Date(+m[3],+m[2]-1,+m[1]),n=new Date();let a=n.getFullYear()-b.getFullYear();if(n.getMonth()<b.getMonth()||(n.getMonth()==b.getMonth()&&n.getDate()<b.getDate()))a--;return a>=0?a:''}
+function autoDate(el){let v=el.value.replace(/\D/g,'').slice(0,8);if(v.length>4)v=v.slice(0,2)+'/'+v.slice(2,4)+'/'+v.slice(4);else if(v.length>2)v=v.slice(0,2)+'/'+v.slice(2);el.value=v}
+function formatPhone(el){let v=el.value.replace(/\D/g,'');if(v.startsWith('51'))v=v.slice(2);v=v.slice(0,9);let out='+51';if(v.length)out+=' '+v.slice(0,3);if(v.length>3)out+=' '+v.slice(3,6);if(v.length>6)out+=' '+v.slice(6,9);el.value=out}
+function validPhone(v){return !v || /^\+51 \d{3} \d{3} \d{3}$/.test(v)}
+function sortTable(type,key){let s=sortState[type]||{key:'id',dir:1};s.dir=s.key===key?-s.dir:1;s.key=key;sortState[type]=s;renderAll()}
+function nav(){
+ document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById('page-'+b.dataset.page).classList.add('active');document.getElementById('pageTitle').textContent=b.textContent.replace(/^\S+\s/,'');document.getElementById('pageSubtitle').textContent=subtitles[b.dataset.page]||'';});
+}
+const subtitles={inicio:'Panel general de Renacientes de los Sambos',integrantes:'Registro y administración de integrantes',pagos:'Control de ingresos y comprobantes',cajas:'Control de dinero por caja',conceptos:'Conceptos válidos para los pagos',exportaciones:'Generación de reportes',backups:'Protección y recuperación de datos',config:'Preferencias del sistema'};
+function renderAll(){renderDashboard();renderMembers();renderPayments();renderBoxes();renderConcepts();renderExportConcepts();document.getElementById('todayExportLabel').textContent='PAGOS_'+today()+'.xlsx'}
+function renderExportConcepts(){
+ const ctrl=document.getElementById('controlConcept');
+ if(ctrl){
+   const old=ctrl.value;
+   ctrl.innerHTML='<option value="">Seleccionar concepto</option>'+state.concepts.map(c=>`<option value="${c.id}">${esc(c.name)} · ${money(c.price||0)} · ${c.sex}</option>`).join('');
+   if(old&&state.concepts.some(c=>c.id==old))ctrl.value=old;
+ }
+ renderConceptControl();
+}
+function renderDashboard(){
+ document.getElementById('dashMembers').textContent=state.members.length;document.getElementById('dashPayments').textContent=state.payments.length;
+ document.getElementById('dashIncome').textContent=money(state.payments.filter(p=>p.status==='Pagado').reduce((a,p)=>a+Number(p.amount),0));document.getElementById('dashBoxes').textContent=state.boxes.length;
+ let total=state.payments.filter(p=>p.status==='Pagado').reduce((a,p)=>a+Number(p.amount),0), bs=document.getElementById('boxSummary');
+ bs.innerHTML=state.boxes.map(b=>{let n=state.payments.filter(p=>p.boxId==b.id&&p.status==='Pagado').reduce((a,p)=>a+Number(p.amount),0);let pct=total?Math.min(100,n/total*100):0;return `<div class="kpi-row"><div><b>${esc(b.name)}</b><div class="section-note">${b.sex}</div></div><b>${money(n)}</b></div><div class="progress"><i style="width:${pct}%"></i></div>`}).join('')||'<div class="empty">No hay cajas.</div>';
+ let recent=[...state.payments].sort((a,b)=>b.id-a.id).slice(0,6);document.getElementById('recentPayments').innerHTML=recent.map(p=>`<div class="kpi-row"><div><b>${esc(member(p.memberId)?.names+' '+member(p.memberId)?.surnames||'')}</b><div class="section-note">${esc(concept(p.conceptId)?.name||'')} · ${fmtDate(p.date)}</div></div><b>${money(p.amount)}</b></div>`).join('')||'<div class="empty">No hay pagos.</div>';
+}
+function renderMembers(){
+ let q=(document.getElementById('memberSearch')?.value||'').toLowerCase(), arr=state.members.filter(m=>(m.names+' '+m.surnames+' '+m.dni+' '+m.phone).toLowerCase().includes(q));
+ let s=sortState.members||{key:'id',dir:1};arr.sort((a,b)=>String(a[s.key]??'').localeCompare(String(b[s.key]??''),'es',{numeric:true})*s.dir);
+ document.getElementById('membersBody').innerHTML=arr.map(m=>`<tr><td><b>${m.id}</b></td><td>${esc(m.names)}</td><td>${esc(m.surnames)}</td><td>${m.dni}</td><td><span class="badge ${m.sex==='F'?'blue':'gray'}">${m.sex}</span></td><td>${m.age}</td><td>${fmtDate(m.registered)}</td><td><div class="row-actions"><button class="mini" onclick="openMemberModal(${m.id})">✏️ Editar</button><button class="mini" onclick="showHistory(${m.id})">📋 Historial</button><button class="mini" onclick="deleteMember(${m.id})">🗑️</button></div></td></tr>`).join('')||'<tr><td colspan="8" class="empty">No se encontraron integrantes.</td></tr>';
+}
+function renderPayments(){
+ let q=(document.getElementById('paymentSearch')?.value||'').toLowerCase(),st=document.getElementById('paymentStatusFilter')?.value||'',dt=document.getElementById('paymentDateFilter')?.value||'';
+ let arr=state.payments.filter(p=>{let m=member(p.memberId),c=concept(p.conceptId),b=box(p.boxId);let txt=(m?.names+' '+m?.surnames+' '+c?.name+' '+b?.name+' '+p.method).toLowerCase();return (!q||txt.includes(q))&&(!st||p.status===st)&&(!dt||p.date===dt)});
+ document.getElementById('paymentsBody').innerHTML=arr.map(p=>`<tr><td>${p.id}</td><td>${fmtDate(p.date)}</td><td>${esc(member(p.memberId)?.names+' '+member(p.memberId)?.surnames||'')}</td><td>${esc(concept(p.conceptId)?.name||'')}</td><td><b>${money(concept(p.conceptId)?.price||0)}</b></td><td><b>${money(p.amount)}</b></td><td>${money(p.accumulated||p.amount)}</td><td>${money(Math.max(0,(concept(p.conceptId)?.price||0)-(p.accumulated||p.amount)))}</td><td>${esc(box(p.boxId)?.name||'')}</td><td>${esc(p.method)}</td><td><span class="badge ${p.status==='Pagado'?'green':p.status==='Pendiente'?'yellow':'red'}">${p.status}</span></td><td>${p.receipt?'<span class="badge blue">🖼️ Sí</span>':'—'}</td><td><div class="row-actions"><button class="mini" onclick="openPaymentModal(${p.id})">✏️</button><button class="mini" onclick="showReceipt(${p.id})" ${p.receipt?'':'disabled'}>🖼️</button><button class="mini" onclick="deletePayment(${p.id})">🗑️</button></div></td></tr>`).join('')||'<tr><td colspan="13" class="empty">No hay pagos que coincidan.</td></tr>';
+}
+function renderBoxes(){
+ let q=(document.getElementById('boxSearch')?.value||'').toLowerCase(),arr=state.boxes.filter(b=>b.name.toLowerCase().includes(q));let cards=document.getElementById('boxCards');
+ cards.innerHTML=state.boxes.map(b=>{let n=state.payments.filter(p=>p.boxId==b.id&&p.status==='Pagado').reduce((a,p)=>a+Number(p.amount),0);return `<div class="stat"><div class="label">${esc(b.name)}</div><div class="value">${money(n)}</div><div class="sub">${b.sex} · ${state.payments.filter(p=>p.boxId==b.id).length} movimientos</div></div>`}).join('');
+ document.getElementById('boxesBody').innerHTML=arr.map(b=>{let ps=state.payments.filter(p=>p.boxId==b.id);let n=ps.filter(p=>p.status==='Pagado').reduce((a,p)=>a+Number(p.amount),0);return `<tr><td>${b.id}</td><td><b>${esc(b.name)}</b></td><td>${b.sex}</td><td>${money(n)}</td><td>${ps.length}</td><td><div class="row-actions"><button class="mini" onclick="openBoxModal(${b.id})">✏️</button><button class="mini" onclick="deleteBox(${b.id})">🗑️</button></div></td></tr>`}).join('');
+}
+function renderConcepts(){
+ let q=(document.getElementById('conceptSearch')?.value||'').toLowerCase(),arr=state.concepts.filter(c=>c.name.toLowerCase().includes(q));
+ document.getElementById('conceptsBody').innerHTML=arr.map(c=>{let n=state.payments.filter(p=>p.conceptId==c.id).length;return `<tr><td>${c.id}</td><td><b>${esc(c.name)}</b></td><td><b>${money(c.price)}</b></td><td>${c.sex}</td><td>${n}</td><td><div class="row-actions"><button class="mini" onclick="openConceptModal(${c.id})">✏️</button><button class="mini" onclick="deleteConcept(${c.id})">🗑️</button></div></td></tr>`}).join('');
+}
+function openMemberModal(id){
+ document.getElementById('memberForm').reset();document.getElementById('memberId').value=id||'';document.getElementById('mRegistered').value=today();
+ if(id){let m=member(id);document.getElementById('memberModalTitle').textContent='Modificar integrante';for(let [k,v] of [['mNames',m.names],['mSurnames',m.surnames],['mDni',m.dni],['mPhone',m.phone],['mSex',m.sex],['mDob',m.dob],['mAge',m.age],['mRegistered',m.registered],['mGuardian',m.guardian],['mGuardianPhone',m.guardianPhone]])document.getElementById(k).value=v||''}
+ updateGuardian();openModal('memberModal');
+}
+function updateGuardian(){let a=ageFrom(document.getElementById('mDob').value),minor=a!==''&&a<18;document.getElementById('mAge').value=a;document.getElementById('mGuardian').disabled=!minor;document.getElementById('mGuardianPhone').disabled=!minor}
+function saveMember(e){e.preventDefault();let id=Number(document.getElementById('memberId').value),m={id:id||uid(state.members),names:document.getElementById('mNames').value.trim(),surnames:document.getElementById('mSurnames').value.trim(),dni:document.getElementById('mDni').value.trim(),phone:document.getElementById('mPhone').value.trim(),sex:document.getElementById('mSex').value,dob:document.getElementById('mDob').value,age:Number(document.getElementById('mAge').value),guardian:document.getElementById('mGuardian').value.trim(),guardianPhone:document.getElementById('mGuardianPhone').value.trim(),registered:document.getElementById('mRegistered').value};
+ if(!/^\d{8}$/.test(m.dni))return toast('El DNI debe tener exactamente 8 dígitos.',false);if(!validPhone(m.phone)||!validPhone(m.guardianPhone))return toast('El teléfono debe usar el formato +51 000 000 000.',false);if(!isValidDMY(m.dob)||m.age<0)return toast('La fecha de nacimiento no es válida.',false);if(m.age<18&&(!m.guardian||!m.guardianPhone))return toast('El integrante es menor de edad: registra tutor y teléfono.',false);
+ if(state.members.some(x=>x.dni===m.dni&&x.id!==m.id))return toast('Ese DNI ya está registrado.',false);
+ let ix=state.members.findIndex(x=>x.id===m.id);if(ix>=0)state.members[ix]=m;else state.members.push(m);save();closeModal('memberModal');toast(ix>=0?'Integrante modificado.':'Integrante registrado.');
+}
+function deleteMember(id){if(state.payments.some(p=>p.memberId==id))return toast('No se puede eliminar: el integrante tiene pagos asociados.',false);if(!confirm('¿Eliminar este integrante?'))return;state.members=state.members.filter(m=>m.id!=id);reindex(state.members);save();toast('Integrante eliminado.')}
+function reindex(arr){arr.sort((a,b)=>a.id-b.id);arr.forEach((x,i)=>x.id=i+1)}
+function openPaymentModal(id){
+ document.getElementById('paymentForm').reset();document.getElementById('paymentId').value=id||'';document.getElementById('pDate').value=today();clipboardImage=null;document.getElementById('receiptPreview').classList.add('hidden');document.getElementById('paymentModalTitle').textContent=id?'Modificar pago':'Registrar pago';
+ fillPaymentSelects(id);if(id){let p=state.payments.find(x=>x.id==id);document.getElementById('pMember').value=p.memberId;document.getElementById('pDate').value=p.date;document.getElementById('pAmount').value=p.amount;document.getElementById('pMethod').value=p.method;document.getElementById('pStatus').value=p.status;document.getElementById('pNotes').value=p.notes||'';refreshPaymentOptions();document.getElementById('pConcept').value=p.conceptId;document.getElementById('pBox').value=p.boxId;updatePaymentBalance();if(p.receipt){document.getElementById('receiptPreview').src=p.receipt;document.getElementById('receiptPreview').classList.remove('hidden')}}openModal('paymentModal');
+}
+function fillPaymentSelects(id){
+ let ms=document.getElementById('pMember');ms.innerHTML='<option value="">Seleccionar integrante</option>'+state.members.map(m=>`<option value="${m.id}">${esc(m.names+' '+m.surnames)} · ${m.sex}</option>`).join('');
+ document.getElementById('pBox').innerHTML='<option value="">Seleccionar caja</option>'+state.boxes.map(b=>`<option value="${b.id}">${esc(b.name)} · ${b.sex}</option>`).join('');
+ if(id)refreshPaymentOptions();
+}
+function refreshPaymentOptions(){let m=member(document.getElementById('pMember').value),sex=m?.sex;document.getElementById('pConcept').innerHTML='<option value="">Seleccionar concepto</option>'+state.concepts.filter(c=>c.sex==='Todos'||c.sex===sex).map(c=>`<option value="${c.id}">${esc(c.name)} · ${c.sex}</option>`).join('');}
+function readImageData(file){return new Promise((res,rej)=>{if(!file||!file.type.startsWith('image/'))return rej(new Error('Archivo no válido'));const r=new FileReader();r.onerror=()=>rej(r.error||new Error('No se pudo leer la imagen'));r.onload=()=>{const img=new Image();img.onload=()=>{const max=1600,scale=Math.min(1,max/Math.max(img.width,img.height)),w=Math.max(1,Math.round(img.width*scale)),h=Math.max(1,Math.round(img.height*scale)),c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);res(c.toDataURL('image/jpeg',0.82))};img.onerror=()=>res(r.result);img.src=r.result};r.readAsDataURL(file)})}
+const readFileData=readImageData;
+function paidBefore(memberId,conceptId,excludeId=0){
+ return state.payments.filter(x=>x.memberId==memberId&&x.conceptId==conceptId&&x.status==='Pagado'&&x.id!=excludeId).reduce((a,x)=>a+Number(x.amount||0),0);
+}
+function updatePaymentBalance(){
+ const mid=Number(document.getElementById('pMember').value),cid=Number(document.getElementById('pConcept').value),amt=Number(document.getElementById('pAmount').value||0),id=Number(document.getElementById('paymentId').value||0);
+ if(!mid||!cid){document.getElementById('pBalanceInfo').value='Selecciona integrante y concepto';return}
+ const price=Number(concept(cid)?.price||0),prev=paidBefore(mid,cid,id),acc=prev+amt,saldo=Math.max(0,price-acc);
+ document.getElementById('pBalanceInfo').value=price>0?`Precio ${money(price)} · Acumulado ${money(acc)} · Saldo ${money(saldo)}`:`Concepto sin precio definido · Acumulado ${money(acc)}`;
+}
+async function savePayment(e){
+ e.preventDefault();
+ try{
+  let id=Number(document.getElementById('paymentId').value),existing=state.payments.find(x=>x.id===id),receipt=existing?.receipt||'';
+  let file=document.getElementById('pReceipt').files[0];if(file)receipt=await readImageData(file);if(clipboardImage)receipt=clipboardImage;
+  let p={id:id||uid(state.payments),memberId:Number(document.getElementById('pMember').value),date:document.getElementById('pDate').value,conceptId:Number(document.getElementById('pConcept').value),amount:Number(document.getElementById('pAmount').value),paymentType:'Abono parcial',boxId:Number(document.getElementById('pBox').value),method:document.getElementById('pMethod').value,status:document.getElementById('pStatus').value,receipt,notes:document.getElementById('pNotes').value.trim()};
+  if(!p.memberId||!p.conceptId||!p.boxId||!p.date||!p.method||!(p.amount>0)||!Number.isFinite(p.amount))return toast('Completa todos los campos obligatorios.',false);
+  if(!isValidISODate(p.date))return toast('La fecha del pago no es válida.',false);
+  let m=member(p.memberId),c=concept(p.conceptId),b=box(p.boxId);if(!m||!c||!b)return toast('Integrante, concepto o caja inválidos.',false);
+  if(c.sex!=='Todos'&&c.sex!==m.sex)return toast('El concepto no corresponde al sexo del integrante.',false);if(b.sex!=='Todos'&&b.sex!==m.sex)return toast('La caja no corresponde al sexo del integrante.',false);
+  const previo=paidBefore(p.memberId,p.conceptId,p.id),acumulado=p.status==='Pagado'?previo+p.amount:previo;
+  if(c.price>0&&acumulado>c.price)return toast(`El abono supera el precio del concepto. Saldo disponible: ${money(Math.max(0,c.price-previo))}.`,false);
+  if(c.price>0&&p.status==='Pagado'&&acumulado>=c.price)p.paymentType='Pago completo';
+  let ix=state.payments.findIndex(x=>x.id===p.id);if(ix>=0)state.payments[ix]=p;else state.payments.push(p);recalcAccumulated();save();closeModal('paymentModal');toast(ix>=0?'Pago modificado.':'Pago registrado.');
+ }catch(err){console.error(err);toast('No se pudo guardar el pago. El dato no fue aplicado.',false)}
+}
+
+function deletePayment(id){if(!confirm('¿Eliminar este pago?'))return;state.payments=state.payments.filter(p=>p.id!=id);reindex(state.payments);recalcAccumulated();save();toast('Pago eliminado.')}
+function openBoxModal(id){document.getElementById('boxId').value=id||'';document.getElementById('boxModalTitle').textContent=id?'Modificar caja':'Nueva caja';if(id){let b=box(id);document.getElementById('boxName').value=b.name;document.getElementById('boxSex').value=b.sex}else{document.querySelector('#boxModal form').reset()}openModal('boxModal')}
+function saveBox(e){e.preventDefault();let id=Number(document.getElementById('boxId').value),o={id:id||uid(state.boxes),name:document.getElementById('boxName').value.trim(),sex:document.getElementById('boxSex').value};if(!o.name)return;if(state.boxes.some(b=>b.name.toLowerCase()===o.name.toLowerCase()&&b.id!==o.id))return toast('Ya existe una caja con ese nombre.',false);let ix=state.boxes.findIndex(b=>b.id===o.id);if(ix>=0)state.boxes[ix]=o;else state.boxes.push(o);save();closeModal('boxModal');toast(ix>=0?'Caja modificada.':'Caja creada.')}
+function deleteBox(id){let n=state.payments.filter(p=>p.boxId==id).length;if(n)return toast(`No se puede eliminar: tiene ${n} movimiento(s) asociado(s).`,false);if(!confirm('¿Eliminar esta caja?'))return;state.boxes=state.boxes.filter(b=>b.id!=id);reindex(state.boxes);save();toast('Caja eliminada.')}
+function openConceptModal(id){document.getElementById('conceptId').value=id||'';document.getElementById('conceptModalTitle').textContent=id?'Modificar concepto':'Nuevo concepto';if(id){let c=concept(id);document.getElementById('conceptName').value=c.name;document.getElementById('conceptPrice').value=c.price||0;document.getElementById('conceptSex').value=c.sex}else document.querySelector('#conceptModal form').reset();openModal('conceptModal')}
+function saveConcept(e){e.preventDefault();let id=Number(document.getElementById('conceptId').value),o={id:id||uid(state.concepts),name:document.getElementById('conceptName').value.trim(),price:Number(document.getElementById('conceptPrice').value),sex:document.getElementById('conceptSex').value};if(o.price<0||isNaN(o.price))return toast('El precio no puede ser negativo.',false);if(!o.name)return;if(state.concepts.some(c=>c.name.toLowerCase()===o.name.toLowerCase()&&c.id!==o.id))return toast('Ese concepto ya existe.',false);let ix=state.concepts.findIndex(c=>c.id===o.id);if(ix>=0)state.concepts[ix]=o;else state.concepts.push(o);save();closeModal('conceptModal');toast(ix>=0?'Concepto modificado.':'Concepto creado.')}
+function deleteConcept(id){let n=state.payments.filter(p=>p.conceptId==id).length;if(n)return toast(`No se puede eliminar: tiene ${n} pago(s) asociado(s).`,false);if(!confirm('¿Eliminar este concepto?'))return;state.concepts=state.concepts.filter(c=>c.id!=id);reindex(state.concepts);save();toast('Concepto eliminado.')}
+function showHistory(id){currentHistoryMember=id;let m=member(id);document.getElementById('historyTitle').textContent='Historial: '+m.names+' '+m.surnames;let arr=state.payments.filter(p=>p.memberId==id);document.getElementById('historyBody').innerHTML=arr.map(p=>`<tr ondblclick="showReceipt(${p.id})"><td>${fmtDate(p.date)}</td><td>${esc(concept(p.conceptId)?.name||'')}</td><td>${money(concept(p.conceptId)?.price||0)}</td><td>${money(p.amount)}</td><td>${money(p.accumulated||p.amount)}</td><td>${money(Math.max(0,(concept(p.conceptId)?.price||0)-(p.accumulated||p.amount)))}</td><td>${esc(box(p.boxId)?.name||'')}</td><td>${esc(p.method)}</td><td>${p.status}</td><td>${p.receipt?'🖼️ Doble clic':'—'}</td></tr>`).join('')||'<tr><td colspan="10" class="empty">Este integrante no tiene pagos registrados.</td></tr>';openModal('historyModal')}
+function showReceipt(id){let p=state.payments.find(x=>x.id==id);if(!p?.receipt)return toast('Este pago no tiene comprobante.',false);document.getElementById('fullImage').src=p.receipt;openModal('imageModal')}
+function exportMemberHistory(id){let rows=state.payments.filter(p=>p.memberId==id).map(paymentRow);downloadXlsx(rows,'HISTORIAL_'+(member(id)?.dni||id)+'.xlsx','Historial')}
+function paymentRow(p){return {ID:p.id,Fecha:p.date,Integrante:(member(p.memberId)?.names+' '+member(p.memberId)?.surnames)||'',DNI:member(p.memberId)?.dni||'',Concepto:concept(p.conceptId)?.name||'',Monto:Number(p.amount),Caja:box(p.boxId)?.name||'',Metodo:p.method,Estado:p.status,Observaciones:p.notes||''}}
+function memberRow(m){return {ID:m.id,Nombres:m.names,Apellidos:m.surnames,DNI:m.dni,Telefono:m.phone,Sexo:m.sex,Nacimiento:m.dob,Edad:m.age,Tutor:m.guardian||'',TelefonoTutor:m.guardianPhone||'',FechaRegistro:m.registered}}
+function downloadXlsx(rows,file,sheet='Datos'){if(typeof XLSX==='undefined'){downloadCSV(rows,file.replace('.xlsx','.csv'));return}let ws=XLSX.utils.json_to_sheet(rows);ws['!cols']=Object.keys(rows[0]||{Datos:''}).map(k=>({wch:Math.max(12,Math.min(32,k.length+4))}));let wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,sheet);XLSX.writeFile(wb,file);toast('Archivo exportado: '+file)}
+function downloadCSV(rows,file){let keys=Object.keys(rows[0]||{}),csv=[keys.join(';'),...rows.map(r=>keys.map(k=>`"${String(r[k]??'').replaceAll('"','""')}"`).join(';'))].join('\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));a.download=file;a.click();toast('CSV exportado porque SheetJS no está disponible.')}
+function exportMembers(){downloadXlsx(state.members.map(memberRow),'INTEGRANTES.xlsx','Integrantes')}
+function exportPayments(){downloadXlsx(state.payments.map(paymentRow),'PAGOS.xlsx','Pagos')}
+function exportSummary(){let rows=state.boxes.map(b=>({Caja:b.name,Sexo:b.sex,Movimientos:state.payments.filter(p=>p.boxId==b.id).length,Total:state.payments.filter(p=>p.boxId==b.id&&p.status==='Pagado').reduce((a,p)=>a+Number(p.amount),0)}));downloadXlsx(rows,'RESUMEN.xlsx','Resumen')}
+function getConceptControlRows(){
+ const cid=Number(document.getElementById('controlConcept')?.value||0);if(!cid)return [];
+ const c=concept(cid);if(!c)return [];
+ const byMember=new Map();
+ for(const p of state.payments)if(p.conceptId==cid&&p.status==='Pagado'){const key=Number(p.memberId);if(!byMember.has(key))byMember.set(key,[]);byMember.get(key).push(p)}
+ const precio=Number(c.price||0);
+ return state.members.filter(m=>c.sex==='Todos'||m.sex===c.sex).map(m=>{
+   const pagos=byMember.get(Number(m.id))||[];const pagado=pagos.reduce((a,p)=>a+Number(p.amount||0),0);const saldo=Math.max(0,precio-pagado);
+   let estado;if(precio<=0)estado=pagos.length?'COMPLETADO':'NO_PAGO';else if(pagado>=precio)estado='COMPLETADO';else if(pagado>0)estado='ABONO';else estado='NO_PAGO';
+   return {member:m,concept:c,precio,pagado,saldo,estado,pagos};
+ });
+}
+function renderConceptControl(){
+ const rows=getConceptControlRows(),filter=document.getElementById('controlStatus')?.value||'';
+ const shown=rows.filter(r=>!filter||r.estado===filter);
+ const total=rows.length,completed=rows.filter(r=>r.estado==='COMPLETADO').length,abono=rows.filter(r=>r.estado==='ABONO').length,nopago=rows.filter(r=>r.estado==='NO_PAGO').length;
+ const recaudado=rows.reduce((a,r)=>a+r.pagado,0),pendiente=rows.reduce((a,r)=>a+r.saldo,0);
+ const stats=document.getElementById('conceptControlStats');
+ if(stats)stats.innerHTML=`
+   <div class="stat"><div class="label">INTEGRANTES</div><div class="value">${total}</div><div class="sub">Total a controlar</div></div>
+   <div class="stat"><div class="label">COMPLETADOS</div><div class="value" style="color:#16a34a">${completed}</div><div class="sub">Pago completo</div></div>
+   <div class="stat"><div class="label">CON ABONO</div><div class="value" style="color:#d97706">${abono}</div><div class="sub">Pago parcial</div></div>
+   <div class="stat"><div class="label">NO PAGARON</div><div class="value" style="color:#dc2626">${nopago}</div><div class="sub">Sin pagos registrados</div></div>
+   <div class="stat"><div class="label">RECAUDADO</div><div class="value">${money(recaudado)}</div><div class="sub">Pagado hasta ahora</div></div>
+   <div class="stat"><div class="label">PENDIENTE</div><div class="value">${money(pendiente)}</div><div class="sub">Saldo total</div></div>`;
+ const body=document.getElementById('conceptControlBody');
+ if(!rows.length){body.innerHTML='<tr><td colspan="9" class="empty">Selecciona un concepto para ver el control.</td></tr>';return}
+ body.innerHTML=shown.map(r=>{
+   const avance=r.precio>0?Math.min(100,(r.pagado/r.precio)*100):100;
+   const label=r.estado==='COMPLETADO'?'COMPLETADO':r.estado==='ABONO'?'ABONÓ':'NO PAGÓ';
+   const cls=r.estado==='COMPLETADO'?'green':r.estado==='ABONO'?'yellow':'red';
+   return `<tr><td>${r.member.id}</td><td><b>${esc(r.member.names+' '+r.member.surnames)}</b></td><td>${r.member.dni}</td><td>${r.member.sex}</td><td>${money(r.precio)}</td><td>${money(r.pagado)}</td><td><b>${money(r.saldo)}</b></td><td style="min-width:130px"><div>${avance.toFixed(0)}%</div><div class="progress"><i style="width:${avance}%"></i></div></td><td><span class="badge ${cls}">${label}</span></td></tr>`;
+ }).join('')||'<tr><td colspan="9" class="empty">No hay integrantes para este filtro.</td></tr>';
+}
+function exportConceptControl(){
+ const cid=Number(document.getElementById('controlConcept')?.value||0);
+ if(!cid)return toast('Selecciona un concepto.',false);
+ const filter=document.getElementById('controlStatus')?.value||'';
+ const c=concept(cid);
+ const rows=getConceptControlRows().filter(r=>!filter||r.estado===filter);
+ if(!rows.length)return toast('No hay integrantes para el filtro seleccionado.',false);
+ const data=rows.map(r=>({
+   ID:r.member.id,
+   Integrante:r.member.names+' '+r.member.surnames,
+   DNI:r.member.dni,
+   Sexo:r.member.sex,
+   Concepto:c.name,
+   Precio_Total:Number(r.precio),
+   Pagado:Number(r.pagado),
+   Saldo:Number(r.saldo),
+   Avance:r.precio>0?Number(Math.min(100,(r.pagado/r.precio)*100).toFixed(2)):100,
+   Estado:r.estado==='COMPLETADO'?'COMPLETADO':r.estado==='ABONO'?'ABONO':'NO PAGO'
+ }));
+ const suffix=filter?('_'+filter):'_TODOS';
+ downloadXlsx(data,`CONTROL_${c.name.replace(/[^a-z0-9áéíóúñ ]/gi,'').trim().replace(/\s+/g,'_')}${suffix}.xlsx`,'Control de pago');
+ toast('Control exportado correctamente.');
+}
+function exportRange(){let a=document.getElementById('exportFrom').value,b=document.getElementById('exportTo').value;if(!a||!b||a>b)return toast('Indica un rango de fechas válido.',false);downloadXlsx(state.payments.filter(p=>p.date>=a&&p.date<=b).map(paymentRow),`PAGOS_${a}_A_${b}.xlsx`,'Pagos')}
+function dailyExport(){let d=today();downloadXlsx(state.payments.filter(p=>p.date===d).map(paymentRow),`PAGOS_${d}.xlsx`,'Pagos del día')}
+function createBackup(){let blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='BACKUP_SISTEMA_RS_'+today()+'.json';a.click();toast('Copia de seguridad creada.')}
+function restoreBackup(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);if(!x||!Array.isArray(x.members)||!Array.isArray(x.payments)||!Array.isArray(x.boxes)||!Array.isArray(x.concepts))throw Error();state=normalizeState(x);recalcAccumulated();save();toast('Backup restaurado correctamente.')}catch(err){console.error(err);toast('El archivo no es un backup válido.',false)}finally{e.target.value=''}};r.onerror=()=>toast('No se pudo leer el backup.',false);r.readAsText(f)}
+function saveConfig(){state.config.name=document.getElementById('cfgName').value||'SISTEMA RS';state.config.fraternity=document.getElementById('cfgFraternity').value||'Renacientes de los Sambos';state.config.currency=document.getElementById('cfgCurrency').value;state.config.theme=document.getElementById('cfgTheme').value;save();applyTheme();toast('Configuración guardada.')}
+function applyTheme(){document.body.style.background=state.config.theme==='dark'?'#0b1220':'#eef2f7';if(state.config.theme==='dark'){document.body.style.color='#eaf0ff';document.querySelectorAll('.panel,.stat').forEach(x=>{x.style.background='#111a2e';x.style.color='#eaf0ff'})}else{document.body.style.color='';document.querySelectorAll('.panel,.stat').forEach(x=>{x.style.background='';x.style.color=''})}}
+async function resetData(){if(!confirm('Esto reemplazará los datos actuales por datos de demostración. ¿Continuar?'))return;try{localStorage.removeItem(KEY);await dbClear()}catch(e){}location.reload()}
+document.getElementById('mDob').addEventListener('input',e=>{autoDate(e.target);updateGuardian()});document.getElementById('mPhone').addEventListener('input',e=>formatPhone(e.target));document.getElementById('mGuardianPhone').addEventListener('input',e=>formatPhone(e.target));document.getElementById('mDni').addEventListener('input',e=>e.target.value=e.target.value.replace(/\D/g,'').slice(0,8));
+document.getElementById('pReceipt').addEventListener('change',async e=>{let f=e.target.files[0];if(f){clipboardImage=await readFileData(f);document.getElementById('receiptPreview').src=clipboardImage;document.getElementById('receiptPreview').classList.remove('hidden')}});
+document.getElementById('pasteZone').addEventListener('paste',e=>{let items=e.clipboardData?.items||[];for(let i of items)if(i.type.startsWith('image/')){let f=i.getAsFile();readFileData(f).then(x=>{clipboardImage=x;document.getElementById('receiptPreview').src=x;document.getElementById('receiptPreview').classList.remove('hidden');toast('Imagen pegada correctamente.')});break}});
+function diagnosticoSistema(){
+ const issues=[],dnis=new Set(),ids={members:new Set(),payments:new Set(),boxes:new Set(),concepts:new Set()};
+ for(const [type,arr] of Object.entries({members:state.members,payments:state.payments,boxes:state.boxes,concepts:state.concepts}))for(const x of arr){if(!Number.isInteger(Number(x.id))||Number(x.id)<1)issues.push(`${type}: ID inválido`);else if(ids[type].has(Number(x.id)))issues.push(`${type}: ID duplicado ${x.id}`);else ids[type].add(Number(x.id))}
+ for(const m of state.members){if(m.dni&&dnis.has(m.dni))issues.push('DNI duplicado: '+m.dni);if(m.dni)dnis.add(m.dni);if(m.dob&&!isValidDMY(m.dob))issues.push('Fecha de nacimiento inválida en integrante '+m.id)}
+ for(const p of state.payments){if(!member(p.memberId))issues.push('Pago '+p.id+' apunta a integrante inexistente');if(!concept(p.conceptId))issues.push('Pago '+p.id+' apunta a concepto inexistente');if(!box(p.boxId))issues.push('Pago '+p.id+' apunta a caja inexistente');if(!(Number(p.amount)>0))issues.push('Pago '+p.id+' tiene monto inválido');if(!isValidISODate(p.date))issues.push('Pago '+p.id+' tiene fecha inválida')}
+ const expected=JSON.stringify(state.payments.map(p=>({id:p.id,accumulated:p.accumulated})));recalcAccumulated();const actual=JSON.stringify(state.payments.map(p=>({id:p.id,accumulated:p.accumulated})));if(expected!==actual)issues.push('Acumulados inconsistentes: fueron recalculados automáticamente');
+ return issues;
+}
+window.addEventListener('error',e=>{console.error(e.error||e.message);toast('Se detectó un error inesperado. Los datos guardados no se borraron.',false)});
+window.addEventListener('unhandledrejection',e=>{console.error(e.reason);toast('Se detectó una operación que no pudo completarse.',false)});
+function runDiagnostics(){const issues=diagnosticoSistema();if(!issues.length){toast(`Diagnóstico correcto: ${state.members.length} integrantes, ${state.payments.length} pagos, ${state.concepts.length} conceptos y ${state.boxes.length} cajas.`,true);return}console.warn('Diagnóstico',issues);toast(`Diagnóstico: ${issues.length} incidencia(s). Revisa la consola.`,false)}
+nav();load();
+</script>
+</body>
+</html>
