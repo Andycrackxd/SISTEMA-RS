@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SISTEMA RS | Renacientes de los Sambos</title>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></scriept>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
@@ -279,7 +279,7 @@ document.getElementById('loginForm').addEventListener('submit',async e=>{
  try{
   const {data,error}=await supabaseClient.auth.signInWithPassword({email:document.getElementById('loginEmail').value.trim(),password:document.getElementById('loginPassword').value});
   if(error)throw error;await enterCloudApp(data.user);
- }catch(err){console.error(err);showAuthError('No se pudo iniciar sesión. Revisa el correo, la contraseña y que la cuenta esté confirmada.');try{await supabaseClient.auth.signOut()}catch(_){}}
+ }catch(err){console.error('Error de acceso/Supabase:',err);const detail=(err&&err.message)?err.message:String(err||'Error desconocido');showAuthError('Error real de Supabase: '+detail);try{await supabaseClient.auth.signOut()}catch(_){}}
  finally{btn.disabled=false;btn.textContent='Iniciar sesión'}
 });
 async function logoutRS(){await supabaseClient.auth.signOut();currentUser=null;cloudBaseline=null;document.getElementById('mainApp').style.display='none';document.getElementById('authScreen').style.display='flex'}
